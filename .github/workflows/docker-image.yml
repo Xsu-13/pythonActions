@@ -8,16 +8,13 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: xsu-13/pythonactions 
+  IMAGE_NAME: xsu-13/pythonactions
   APP_PORT: 8015
   PYTHON_VERSION: '3.10'
 
 jobs:
-  build-and-push:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      packages: write 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -32,19 +29,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:pr-${{ github.run_number }}
           push: true
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:pr-${{ github.run_number }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          build-args: |
+            PYTHON_VERSION=${{ env.PYTHON_VERSION }}
 
   test:
-    needs: build-and-push
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Login to GitHub Container Registry
@@ -58,12 +55,13 @@ jobs:
         run: |
           docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:pr-${{ github.run_number }}
           docker run --rm \
-            -e DATABASE_URL=sqlite:///:memory: \
+            -v $PWD/tests:/app/tests \
+            -w /app \
             ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:pr-${{ github.run_number }} \
-            pytest tests/
+            sh -c "pip install pytest && pytest tests/"
 
   deploy:
-    needs: [build-and-push, test]
+    needs: [build, test]
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:

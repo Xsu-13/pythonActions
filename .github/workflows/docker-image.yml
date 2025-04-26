@@ -24,20 +24,15 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install Poetry
-        uses: snok/install-poetry@v1
-        with:
-          virtualenvs-create: true
-          virtualenvs-in-project: true
-
       - name: Install dependencies
         run: |
-          poetry install --with=test --no-interaction --no-ansi
-          poetry show
+          python -m pip install --upgrade pip setuptools
+          pip install .[test]
+          pip list
 
       - name: Run tests
         run: |
-          poetry run pytest tests/
+          pytest tests/
 
       - name: Login to GitHub Container Registry
         uses: docker/login-action@v3
@@ -46,19 +41,12 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Extract Docker metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: ${{ github.ref == 'refs/heads/main' }}
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
   deploy:
     needs: build-and-test
@@ -78,6 +66,5 @@ jobs:
             docker run -d \
               --name fastapi_app \
               -p ${{ env.APP_PORT }}:${{ env.APP_PORT }} \
-              -e ENVIRONMENT=production \
               -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
               ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest

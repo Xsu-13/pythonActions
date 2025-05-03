@@ -64,7 +64,7 @@ jobs:
 
   deploy:
     needs: [build, test]
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Network diagnostics

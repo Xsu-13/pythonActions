@@ -30,7 +30,7 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql://test:test@db:5432/test
-      PYTHONPATH: /usr/src/app/src
+      PYTHONPATH: /usr/src/app
     volumes:
       - ./tests:/tests
     command: tail -f /dev/null

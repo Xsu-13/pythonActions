@@ -22,7 +22,9 @@ services:
       DATABASE_URL: postgresql://test:test@db:5432/test
 
   tests:
-    image: ghcr.io/xsu-13/pythonactions:pr-${GITHUB_RUN_NUMBER}
+    build:
+      context: .
+      target: test-stage
     depends_on:
       db:
         condition: service_healthy

@@ -19,7 +19,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql+asyncpg://test:test@db:5432/test
+      DATABASE_URL: postgresql+psycopg://test:test@db:5432/test
 
   tests:
     build:
@@ -29,7 +29,7 @@ services:
       db:
         condition: service_healthy
     environment:
-      DATABASE_URL: postgresql+asyncpg://test:test@db:5432/test
+      DATABASE_URL: postgresql+psycopg://test:test@db:5432/test
       PYTHONPATH: /usr/src/app
     volumes:
       - ./tests:/tests

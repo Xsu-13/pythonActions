@@ -17,7 +17,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      packages: write 
+      packages: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -36,10 +36,8 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: true 
-          tags: |
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:pr-${{ github.run_number }}
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:pr-${{ github.run_number }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -47,21 +45,21 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Start test environment
+        run: |
+          docker-compose -f docker-compose.test.yml up -d --build
+          docker-compose -f docker-compose.test.yml ps
 
       - name: Run tests
         run: |
-          docker pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:pr-${{ github.run_number }}
-          docker run --rm \
-            -v $PWD/tests:/app/tests \
-            -w /app \
-            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:pr-${{ github.run_number }} \
-            sh -c "pip install pytest && pytest tests/"
+          docker-compose -f docker-compose.test.yml exec -T tests pytest /tests -v
+
+      - name: Stop test environment
+        if: always()
+        run: docker-compose -f docker-compose.test.yml down -v
 
   deploy:
     needs: [build, test]

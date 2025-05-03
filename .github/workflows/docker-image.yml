@@ -68,7 +68,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Deploy to server
-        uses: appleboy/ssh-action@v1
+        shell: pwsh
         with:
           host: ${{ secrets.SSH_HOST }}
           username: ${{ secrets.SSH_USERNAME }}

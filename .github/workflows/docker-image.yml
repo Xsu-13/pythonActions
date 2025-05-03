@@ -67,6 +67,14 @@ jobs:
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
     steps:
+      - name: Network diagnostics
+        run: |
+          echo "Проверка доступности сервера..."
+          ping -c 4 ${{ secrets.SSH_HOST }} || echo "Ping failed"
+          echo "Проверка порта SSH..."
+          nc -zv -w 5 ${{ secrets.SSH_HOST }} 58529 || echo "Port check failed"
+          echo "Traceroute..."
+          traceroute ${{ secrets.SSH_HOST }} -m 5 -w 1 || echo "Traceroute failed"
       - name: Deploy to server
         uses: appleboy/ssh-action@v1
         with:
@@ -74,7 +82,6 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 58529
-          script_timeout: 4m
           script: |
             podman pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             podman stop fastapi_app || true

@@ -74,6 +74,7 @@ jobs:
           username: ${{ secrets.SSH_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: 58529
+          script_timeout: 4m
           script: |
             podman pull ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
             podman stop fastapi_app || true

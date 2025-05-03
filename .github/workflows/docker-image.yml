@@ -67,14 +67,6 @@ jobs:
     runs-on: self-hosted
     if: github.ref == 'refs/heads/main'
     steps:
-      - name: Network diagnostics
-        run: |
-          echo "Проверка доступности сервера..."
-          ping -c 4 ${{ secrets.SSH_HOST }} || echo "Ping failed"
-          echo "Проверка порта SSH..."
-          nc -zv -w 5 ${{ secrets.SSH_HOST }} 58529 || echo "Port check failed"
-          echo "Traceroute..."
-          traceroute ${{ secrets.SSH_HOST }} -m 5 -w 1 || echo "Traceroute failed"
       - name: Deploy to server
         uses: appleboy/ssh-action@v1
         with:

@@ -82,4 +82,5 @@ jobs:
               --name fastapi_app \
               -e DATABASE_URL=${{ secrets.DATABASE_URL }} \
               --network host \
-              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+              ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest \
+              uvicorn src.main:app --reload --port 8015 --host 0.0.0.0

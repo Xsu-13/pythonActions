@@ -10,4 +10,4 @@ test:
 	pytest tests
 
 run:
-	uvicorn src.main:app --reload --port 3015
+	uvicorn src.main:app --reload --port 8015
